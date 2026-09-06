@@ -5,6 +5,7 @@
 #include <variant>
 #include "ECS.hpp"
 
+#pragma pack(push, 1)
 struct WorldFileHeader {
     uint32_t magicNumber;
     uint32_t version;
@@ -16,6 +17,7 @@ struct WorldFileHeader {
     vector3 origin;
 
 };
+#pragma pack(pop)
 
 bool SaveWorld(const std::filesystem::path& filepath, const Grid& grid, ComponentPool<CellComponent>* cellComponent) {
     if (!cellComponent) return false;
@@ -34,11 +36,16 @@ bool SaveWorld(const std::filesystem::path& filepath, const Grid& grid, Componen
 
     saveFile.write(reinterpret_cast<const char*>(&wfh), sizeof(wfh));
 
-    size_t elementCount = cellComponent->dense.size();
+    uint32_t elementCount = static_cast<uint32_t>(cellComponent->dense.size()); 
     saveFile.write(reinterpret_cast<const char*>(&elementCount), sizeof(elementCount));
 
-    size_t dataSizeBytes = elementCount * sizeof(cellComponent);
-    saveFile.write(reinterpret_cast<const char*>(cellComponent->dense.data()), dataSizeBytes);
+    for (size_t i = 0; i < elementCount; ++i) {
+    Entity entity = cellComponent->denseIds[i]; 
+    CellComponent& cell = cellComponent->dense[i];
+    
+    saveFile.write(reinterpret_cast<const char*>(&entity), sizeof(Entity));
+    saveFile.write(reinterpret_cast<const char*>(&cell), sizeof(CellComponent));
+    }
     return true;
 }
 
@@ -62,12 +69,19 @@ bool LoadWorld(const std::filesystem::path& filepath, Grid& outGrid, ComponentPo
     outGrid.cellHeight = wfh.cellHeight;
     outGrid.origin = wfh.origin;
 
-    size_t elementCount = 0;
+    uint32_t elementCount = 0;
     saveFile.read(reinterpret_cast<char*>(&elementCount), sizeof(elementCount));
 
-    outCellComponent->dense.resize(elementCount);
+    outCellComponent->clear(); 
 
-    size_t dataSizeBytes = elementCount * sizeof(CellComponent);
-    saveFile.read(reinterpret_cast<char*>(outCellComponent->dense.data()), dataSizeBytes);
+    for (size_t i = 0; i < elementCount; ++i) {
+    Entity entity;
+    CellComponent cell;
+    
+    saveFile.read(reinterpret_cast<char*>(&entity), sizeof(Entity));
+    saveFile.read(reinterpret_cast<char*>(&cell), sizeof(CellComponent));
+    
+    outCellComponent->addData(cell, entity); 
+    }
     return true; 
 }

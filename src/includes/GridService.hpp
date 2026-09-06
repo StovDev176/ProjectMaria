@@ -79,3 +79,25 @@ struct Grid {
         return IsCellInBounds(WorldToCellScale(worldPos));
     }
 };
+
+struct CellComponent {
+    int32_t cellX = 0;
+    int32_t cellY = 0;
+    int32_t cellZ = 0;
+};
+
+void updateSpatialIndex(const Grid& grid, Registry& registry) {
+    registry.view<CellComponent, TransformComponent>([&grid](Entity id, CellComponent& cellComponent, const TransformComponent& tfc) {
+        vector3 currentCellPos = grid.WorldToCellScale(tfc.position);
+        
+        int32_t newX = static_cast<int32_t>(currentCellPos.x);
+        int32_t newY = static_cast<int32_t>(currentCellPos.y);
+        int32_t newZ = static_cast<int32_t>(currentCellPos.z);
+
+        if (newX != cellComponent.cellX || newY != cellComponent.cellY || newZ != cellComponent.cellZ) {
+            cellComponent.cellX = newX;
+            cellComponent.cellY = newY;
+            cellComponent.cellZ = newZ;
+        }
+    });
+}

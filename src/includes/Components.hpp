@@ -31,3 +31,12 @@ struct MeshComponent {
             std::cout << "Model created" << std::endl;
         }
 };
+
+struct MaterialComponent {
+    std::string shaderId = "default_shader";
+    std::string textureId = "default_albedo";
+    Color tint = WHITE;
+    float metallic = 0.0f;
+    float roughness = 1.0f;
+    Vector2 tiling = { 1.0f, 1.0f };
+};

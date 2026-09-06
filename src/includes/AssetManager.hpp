@@ -8,9 +8,14 @@
 #include <type_traits>
 #include "raylib.h"
 
+struct ShaderAsset {
+    Shader shader;
+    std::unordered_map<std::string, int> locations;
+};
+
 class AssetManager {
 private:    
-    std::unordered_map<std::string, std::variant<Texture2D, Model>> assets;
+    std::unordered_map<std::string, std::variant<Texture2D, Model, ShaderAsset>> assets;
 
 public:
     ~AssetManager() {
@@ -19,8 +24,8 @@ public:
 
     template<typename T>
     bool LoadAsset(const std::filesystem::path& filePath, const std::string& id) {
-        static_assert(std::is_same_v<T, Model> || std::is_same_v<T, Texture2D>, 
-                      "[AssetManager] : Wrong type, please submit Model or Texture2D dawg.");
+        static_assert(std::is_same_v<T, Model> || std::is_same_v<T, Texture2D> || std::is_same_v<T, ShaderAsset>, 
+                      "[AssetManager] : Wrong type, please submit Model, Texture2D or Shader.");
 
         if (assets.find(id) != assets.end()) {
             std::cout << std::format("[AssetManager] Error: ID '{}' already exists in the assets map.\n", id);
@@ -41,6 +46,19 @@ public:
                 std::cout << std::format("[AssetManager] Error: Failed to load Texture2D from path '{}'\n", filePath);
                 return false;
             }
+        } else if constexpr (std::is_same_v<T, ShaderAsset>) {
+            Shader customShader = ::LoadShader(nullptr, filePath.string().c_str());
+            if (customShader.id == 0) {
+                std::cout << std::format("[AssetManager] Error: Failed to load Shader from path '{}'\n", filePath);
+                return false;
+            }
+            int roughnessLocation = GetShaderLocation(customShader, "u_roughness");
+            int metallicLocation = GetShaderLocation(customShader, "u_metallic");
+            ShaderAsset shaderAsset;
+            shaderAsset.locations["u_roughness"] = roughnessLocation;
+            shaderAsset.locations["u_metallic"] = metallicLocation;
+            shaderAsset.shader = customShader;
+            asset = shaderAsset;
         }
 
         assets[id] = asset;
@@ -49,7 +67,7 @@ public:
 
     template<typename T>
     T& GetAsset(const std::string& id) {
-        static_assert(std::is_same_v<T, Model> || std::is_same_v<T, Texture2D>, 
+        static_assert(std::is_same_v<T, Model> || std::is_same_v<T, Texture2D> || std::is_same_v<T, ShaderAsset>, 
                       "[AssetManager] : Wrong type requested.");
 
         auto it = assets.find(id);
@@ -61,11 +79,13 @@ public:
             } else if constexpr (std::is_same_v<T, Model>) {
                 static Model emptyModel = { 0 };
                 return emptyModel;
+            } else if constexpr(std::is_same_v<T, Shader>) {
+                static Shader emptyShader = { 0 };
+                return emptyShader;
             }
         }
         return std::get<T>(it->second);
-    }    
-
+    }  
     void UnloadAll() {
         for (auto& [id, asset] : assets) {
             std::visit([](auto&& arg) {
@@ -74,6 +94,8 @@ public:
                     ::UnloadModel(arg);
                 } else if constexpr (std::is_same_v<Type, Texture2D>) {
                     ::UnloadTexture(arg);
+                } else if constexpr(std::is_same_v<Type, ShaderAsset>) {
+                    ::UnloadShader(arg.shader);
                 }
             }, asset);
         }

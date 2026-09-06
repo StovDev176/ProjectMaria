@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "Math.hpp"
 #include "Physics.hpp"
+#include "GridService.hpp"
 #include <vector>
 #include "raymath.h"
 #include <algorithm> 
@@ -70,4 +71,8 @@ Camera3D CreateCamera() {
     camera.fovy = 45.0f; 
     camera.projection = CAMERA_PERSPECTIVE; 
     return camera;
+}
+
+inline bool IsPositionInBounds(float xMin, float xMax, float zMin, float zMax, const vector3& pos) {
+    return (pos.x > xMin && pos.x < xMax && pos.z > zMin && pos.z < zMax);
 }

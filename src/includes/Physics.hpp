@@ -80,6 +80,8 @@ struct TransformComponent {
     vector3 position;
     vector3 rotation;
     vector3 scale;
+    Matrix4 worldMatrix = Matrix4::Identity();
+    Matrix4 localMatrix = Matrix4::Identity();
 };
 
 struct AABB {

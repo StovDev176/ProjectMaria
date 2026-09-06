@@ -11,6 +11,8 @@
 
 using Entity = uint32_t;
 
+struct VisibleComponent {};
+
 class IComponentPool {
 public:
     virtual ~IComponentPool() = default;
@@ -37,6 +39,16 @@ public:
         dense.push_back(data);
         denseIds.push_back(entityId);
         sparseSet[entityId] = dense.size() - 1;
+
+    }
+
+    void addData(uint32_t entityId) {
+        if (entityId >= sparseSet.size()) {
+            sparseSet.resize(entityId + 1, UINT32_MAX);
+        }
+        dense.push_back(T{}); 
+        denseIds.push_back(entityId);
+        sparseSet[entityId] = static_cast<uint32_t>(denseIds.size() - 1);
     }
     size_t size() override {
         return dense.size();
@@ -67,6 +79,9 @@ public:
         return &dense[denseIdx];
     }
     bool hasEntity(Entity entity) const {
+        if (entity >= sparseSet.size()) {
+            return false;
+        }   
         return sparseSet[entity] != UINT32_MAX; 
     }
 };

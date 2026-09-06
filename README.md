@@ -1,4 +1,4 @@
-# Project Maria
+# ProjectMaria
  
 A multi-game platform built in C++, developed by 1 dude.
  
@@ -9,9 +9,9 @@ This project will be a big project that is programmed by 1 guy.
  
 ## Contributors
  
-- Contributor 1: stovdev
+None, at the moment.
 
-## Programming langueges
+## Programming languages
 
 - C++
 
@@ -19,5 +19,7 @@ This project will be a big project that is programmed by 1 guy.
 
 Add new features.
 Be more creative.
+
+- StovDev
 
 
