@@ -1,3 +1,13 @@
+<p align="center">
+  <img src="logo.png" alt="ProjectMaria Logo" width="400">
+</p>
+
+<h1 align="center">ProjectMaria</h1>
+
+<p align="center">
+  A modern game engine.
+</p>
+
 # ProjectMaria
  
 A multi-game platform built in C++, developed by 1 dude.
